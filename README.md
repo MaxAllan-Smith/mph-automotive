@@ -1,4 +1,4 @@
-# mph-automotive
+# MPH Automotive
 
 Mph-automotive is a web application that facilitates online sales of motor parts. It allows businesses to receive orders and queries and sends email notifications to the owner for quick and easy processing. The application is built with Node.js, Express, and React and can be easily customized and extended to meet specific business needs.
 
