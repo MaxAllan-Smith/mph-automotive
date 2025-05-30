@@ -49,7 +49,7 @@ import { RouterLink } from 'vue-router'
       <div class="flex items-center space-x-2">
         <!-- Account Icon with updated SVG -->
         <RouterLink
-          to="/account"
+          to="/auth/login"
           class="p-2 header__icon header__icon--account link focus-inset small-hide rounded-full bg-transparent transform transition-transform duration-200 hover:scale-110"
         >
           <svg height="25" width="25" xmlns="http://www.w3.org/2000/svg">
