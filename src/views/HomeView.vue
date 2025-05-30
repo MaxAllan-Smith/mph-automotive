@@ -1,3 +1,9 @@
-<script setup></script>
+<script setup>
+import Banner from '../components/Banner.vue'
+import TopTrendingProducts from '../components/TopTrendingProducts.vue'
+</script>
 
-<template></template>
+<template>
+  <Banner />
+  <TopTrendingProducts />
+</template>

@@ -26,7 +26,7 @@ function onSubmit(e) {
 </script>
 
 <template>
-  <div class="max-w-5xl mx-auto px-4 py-6">
+  <div class="max-w-5xl mx-auto px-4 py-6 mt-8">
     <div class="bg-white shadow-lg rounded-lg p-4 space-y-10 border border-slate-200">
       <!-- VRM Input + Button -->
       <form

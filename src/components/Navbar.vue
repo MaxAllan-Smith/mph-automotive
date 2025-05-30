@@ -11,7 +11,7 @@ import { RouterLink } from 'vue-router'
       <div class="flex-shrink-0">
         <RouterLink to="/" class="focus:outline-none">
           <img
-            src="../assets/logo.png"
+            src="https://i.postimg.cc/0yhZf4BF/logo.avif"
             alt="Logo"
             class="h-13 w-auto rounded-lg duration-200 hover:scale-104"
           />
