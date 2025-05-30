@@ -1,6 +1,5 @@
-<script setup>
-</script>
-      
+<script setup></script>
+
 <!-- src/components/Banner.vue -->
 <template>
   <div class="flex w-full mt-10">
@@ -12,5 +11,3 @@
     />
   </div>
 </template>
-
-
