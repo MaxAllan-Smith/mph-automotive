@@ -6,7 +6,7 @@ import { RouterLink } from 'vue-router'
   <!-- Navbar Wrapper to center content -->
   <div class="bg-white flex justify-center">
     <!-- Navigation Bar Container -->
-    <nav class="w-full max-w-6xl px-4 py-4 flex items-center justify-between">
+    <nav class="flex w-full max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6 lg:flex-nowrap">
       <!-- Logo -->
       <div class="flex-shrink-0">
         <RouterLink to="/" class="focus:outline-none">
@@ -19,12 +19,12 @@ import { RouterLink } from 'vue-router'
       </div>
 
       <!-- Search Bar -->
-      <div class="flex mx-4">
-        <div class="relative">
+      <div class="order-last flex w-full lg:order-none lg:mx-4 lg:flex-1">
+        <div class="relative w-full">
           <input
             type="text"
             placeholder="Search..."
-            class="w-xl pl-4 pr-10 py-2 rounded-lg text-gray-800 bg-slate-200"
+            class="w-full rounded-lg bg-slate-200 py-2 pl-4 pr-10 text-gray-800 outline-none transition focus:bg-white focus:ring-2 focus:ring-red-200"
           />
           <button class="absolute right-2 top-1/2 transform -translate-y-1/2 focus:outline-none">
             <svg
