@@ -4,6 +4,7 @@ import DefaultLayout from '@/layouts/DefaultLayout.vue'
 import AdminLayout from '@/layouts/AdminLayout.vue'
 
 import HomePage from '@/views/HomePage.vue'
+import CataloguePage from '@/views/CataloguePage.vue'
 import LoginPage from '@/views/LoginPage.vue'
 import SignupPage from '@/views/SignupPage.vue'
 import ProductDetail from '@/views/ProductDetail.vue'
@@ -26,6 +27,7 @@ const routes = [
     component: DefaultLayout,
     children: [
       { path: '', component: HomePage },
+      { path: 'catalogue', component: CataloguePage },
       { path: 'products/:id', component: ProductDetail },
     ],
   },
@@ -40,6 +42,13 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes,
+  scrollBehavior(to) {
+    if (to.hash) {
+      return { el: to.hash, top: 16, behavior: 'smooth' }
+    }
+
+    return { top: 0, left: 0 }
+  },
 })
 
 // Global Navigation Guard

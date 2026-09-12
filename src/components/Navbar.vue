@@ -1,12 +1,25 @@
 <script setup>
+import { ref } from 'vue'
 import { RouterLink } from 'vue-router'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+const searchTerm = ref('')
+
+function submitSearch() {
+  const query = searchTerm.value.trim()
+
+  router.push({ path: '/catalogue', query: query ? { q: query } : {} })
+}
 </script>
 
 <template>
   <!-- Navbar Wrapper to center content -->
   <div class="bg-white flex justify-center">
     <!-- Navigation Bar Container -->
-    <nav class="flex w-full max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6 lg:flex-nowrap">
+    <nav
+      class="flex w-full max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6 lg:flex-nowrap"
+    >
       <!-- Logo -->
       <div class="flex-shrink-0">
         <RouterLink to="/" class="focus:outline-none">
@@ -19,14 +32,21 @@ import { RouterLink } from 'vue-router'
       </div>
 
       <!-- Search Bar -->
-      <div class="order-last flex w-full lg:order-none lg:mx-4 lg:flex-1">
+      <form
+        class="order-last flex w-full lg:order-none lg:mx-4 lg:flex-1"
+        @submit.prevent="submitSearch"
+      >
         <div class="relative w-full">
           <input
+            v-model="searchTerm"
             type="text"
-            placeholder="Search..."
+            placeholder="Search parts, brands, codes..."
             class="w-full rounded-lg bg-slate-200 py-2 pl-4 pr-10 text-gray-800 outline-none transition focus:bg-white focus:ring-2 focus:ring-red-200"
           />
-          <button class="absolute right-2 top-1/2 transform -translate-y-1/2 focus:outline-none">
+          <button
+            type="submit"
+            class="absolute right-2 top-1/2 transform -translate-y-1/2 focus:outline-none"
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               class="h-5 w-5 text-gray-600"
@@ -43,7 +63,7 @@ import { RouterLink } from 'vue-router'
             </svg>
           </button>
         </div>
-      </div>
+      </form>
 
       <!-- Account & Cart -->
       <div class="flex items-center space-x-2">

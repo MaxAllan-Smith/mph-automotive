@@ -1,252 +1,311 @@
-<!-- src/views/ProductDetail.vue -->
 <script setup>
-import { onMounted, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import apiClient from '@/services/apiService'
+import { computed, ref, watch } from 'vue'
+import { RouterLink, useRoute, useRouter } from 'vue-router'
+import {
+  ArrowLeft,
+  Box,
+  CheckCircle2,
+  ChevronRight,
+  PackageCheck,
+  ShieldCheck,
+  ShoppingCart,
+  Star,
+  Truck,
+} from '@lucide/vue'
+import { getProductById, getRelatedProducts } from '@/data/catalogue'
 
 const route = useRoute()
 const router = useRouter()
 
-// Main product data
-const productResult = ref(null)
-const isLoading = ref(true)
-const error = ref(null)
-
-// Quantity selector
 const quantity = ref(1)
+const selectedImageIndex = ref(0)
 
-// Related products
-const relatedProducts = ref([])
-const isRelatedLoading = ref(false)
-const relatedError = ref(null)
+const product = computed(() => getProductById(route.params.id))
+const relatedProducts = computed(() => getRelatedProducts(route.params.id, 3))
+const selectedImage = computed(
+  () => product.value?.gallery[selectedImageIndex.value] || product.value?.image,
+)
+const savings = computed(() => {
+  if (!product.value?.wasPrice) return null
+  return (product.value.wasPrice - product.value.price).toFixed(2)
+})
 
-async function fetchProduct() {
-  isLoading.value = true
-  error.value = null
+watch(
+  () => route.params.id,
+  () => {
+    selectedImageIndex.value = 0
+    quantity.value = 1
+  },
+)
 
-  try {
-    const productId = route.params.id
-    const response = await apiClient.get(`/products/${productId}`)
-    productResult.value = response.data
-    // After loading main product, fetch related items
-    fetchRelatedProducts(productId)
-  } catch (err) {
-    console.error('Failed to get product details:', err)
-    error.value = 'Could not load product. Please try again later.'
-  } finally {
-    isLoading.value = false
-  }
+function addToBasket() {
+  if (!product.value) return
+  alert(`Added ${quantity.value} x ${product.value.name} to your basket.`)
 }
-
-async function fetchRelatedProducts(productId) {
-  isRelatedLoading.value = true
-  relatedError.value = null
-
-  try {
-    // Adjust this endpoint as needed; assumes your backend supports /products/{id}/related
-    const response = await apiClient.get(`/products/${productId}/related`)
-    relatedProducts.value = response.data
-  } catch (err) {
-    console.error('Failed to fetch related products:', err)
-    relatedError.value = 'Could not load related products.'
-  } finally {
-    isRelatedLoading.value = false
-  }
-}
-
-// Add to basket handler (stubbed; replace with real API call)
-async function addToBasket() {
-  if (!productResult.value) return
-
-  try {
-    const productId = productResult.value.product.id
-    await apiClient.post('/basket', {
-      productId,
-      quantity: quantity.value,
-    })
-    // Optionally show a success message or notification
-    alert(`Added ${quantity.value} × “${productResult.value.product.description}” to your basket.`)
-  } catch (err) {
-    console.error('Failed to add to basket:', err)
-    alert('Could not add to basket. Please try again.')
-  }
-}
-
-// Buy now handler (stubbed; adjust as needed)
-function buyNow() {
-  if (!productResult.value) return
-  const productId = productResult.value.product.id
-  // Example: navigate to a checkout page with query params
-  router.push({
-    name: 'Checkout',
-    query: { productId, qty: quantity.value },
-  })
-}
-
-function goBack() {
-  router.back()
-}
-
-onMounted(fetchProduct)
 </script>
 
 <template>
-  <div class="p-6 max-w-[80rem] mx-auto">
-    <!-- Back button -->
-    <button @click="goBack" class="mb-6 inline-flex items-center text-blue-600 hover:text-blue-800">
-      ← Back
-    </button>
-
-    <!-- Loading state -->
-    <div v-if="isLoading" class="text-center py-20">
-      <p class="text-lg text-gray-500">Loading product…</p>
-    </div>
-
-    <!-- Error state -->
-    <div v-else-if="error" class="text-center py-20">
-      <p class="text-red-600">{{ error }}</p>
-    </div>
-
-    <!-- Product details -->
-    <div v-else-if="productResult" class="space-y-12">
-      <!-- Top: Image + Info -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <!-- Left side: image -->
-        <div
-          class="w-full h-[400px] flex items-center justify-center border border-slate-200 rounded-lg overflow-hidden bg-white"
+  <div class="bg-zinc-100 text-zinc-950">
+    <section v-if="product" class="px-4 py-8 sm:px-6 lg:px-8">
+      <div class="mx-auto max-w-7xl">
+        <nav
+          class="mb-6 flex flex-wrap items-center gap-2 text-sm font-bold text-zinc-500"
+          aria-label="Breadcrumb"
         >
-          <img
-            :src="productResult.product.imageUrl"
-            alt="Product Image"
-            class="object-contain max-h-full max-w-full p-4"
-            loading="lazy"
-          />
-        </div>
-
-        <!-- Right side: info -->
-        <div class="flex flex-col">
-          <!-- Title and code -->
-          <div>
-            <h1 class="text-3xl font-bold mb-2">
-              {{ productResult.product.description }}
-            </h1>
-            <p class="text-md text-gray-700 mb-4">
-              <strong>Product Code:</strong>
-              {{ productResult.product.productCode }}
-            </p>
-          </div>
-
-          <!-- Quantity selector and buttons -->
-          <div class="flex items-center space-x-4 mb-6">
-            <div>
-              <label for="qty" class="block text-sm font-medium text-gray-700 mb-1">
-                Quantity
-              </label>
-              <input
-                id="qty"
-                type="number"
-                v-model.number="quantity"
-                :min="1"
-                :max="productResult.product.stockQty || 1"
-                class="w-20 border border-gray-300 rounded-md p-2 text-center"
-              />
-            </div>
-            <button
-              @click="addToBasket"
-              :disabled="productResult.product.stockQty === 0"
-              class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
-            >
-              Add to Basket
-            </button>
-            <button
-              @click="buyNow"
-              :disabled="productResult.product.stockQty === 0"
-              class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50"
-            >
-              Buy Now
-            </button>
-          </div>
-
-          <!-- Long description -->
-          <div>
-            <h2 class="text-xl font-semibold mb-2">Product Details</h2>
-            <p class="text-gray-700">
-              {{ productResult.longDescription || 'No further details available.' }}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Related Products -->
-      <div class="mt-12">
-        <h2 class="text-2xl font-bold mb-6">Related Products</h2>
-
-        <!-- Related loading / error -->
-        <div v-if="isRelatedLoading" class="text-center py-10">
-          <p class="text-gray-500">Loading related products…</p>
-        </div>
-        <div v-else-if="relatedError" class="text-center py-10">
-          <p class="text-red-600">{{ relatedError }}</p>
-        </div>
-
-        <!-- Related grid -->
-        <div v-else class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-          <div
-            v-for="item in relatedProducts"
-            :key="item.product.id"
-            @click="router.push(`/products/${item.product.id}`)"
-            class="cursor-pointer bg-white hover:bg-gray-100 rounded-lg overflow-hidden shadow border border-slate-200 transition flex flex-col"
+          <RouterLink to="/" class="transition hover:text-red-600">Home</RouterLink>
+          <ChevronRight class="h-4 w-4" aria-hidden="true" />
+          <RouterLink to="/catalogue" class="transition hover:text-red-600"
+            >Parts Catalogue</RouterLink
           >
-            <div class="w-full h-[200px] relative">
-              <img
-                :src="item.product.imageUrl"
-                alt="Related Product"
-                class="absolute top-0 left-0 w-full h-full object-contain p-4"
-                loading="lazy"
-              />
-            </div>
-            <div class="p-4 flex flex-col flex-grow">
-              <p class="text-base mb-1 text-center">
-                {{ item.product.description }}
-              </p>
-              <p class="text-center mb-2">
-                <span
-                  v-if="item.product.stockQty > 0"
-                  class="inline-block bg-green-200 text-green-900 px-2 py-1 rounded-full text-xs font-semibold"
-                >
-                  In Stock
-                </span>
-                <span
-                  v-else
-                  class="inline-block bg-red-200 text-red-900 px-2 py-1 rounded-full text-xs font-semibold"
-                >
-                  Out of Stock
-                </span>
-              </p>
-              <p class="text-lg font-semibold text-center mt-auto">
-                £{{ (item.sellingPrice?.unitPrice || 0).toFixed(2) }}
-              </p>
+          <ChevronRight class="h-4 w-4" aria-hidden="true" />
+          <span class="text-zinc-950">{{ product.name }}</span>
+        </nav>
+
+        <button
+          type="button"
+          class="mb-6 inline-flex items-center gap-2 text-sm font-black uppercase tracking-wide text-red-600 hover:text-zinc-950"
+          @click="router.back()"
+        >
+          <ArrowLeft class="h-4 w-4" aria-hidden="true" />
+          Back
+        </button>
+
+        <div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_26rem] lg:items-start">
+          <div class="rounded-lg border border-zinc-200 bg-white p-4 shadow-sm">
+            <div class="grid gap-6 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1fr)]">
+              <div>
+                <div class="relative h-[24rem] overflow-hidden rounded-md bg-zinc-100">
+                  <img
+                    :src="selectedImage"
+                    :alt="product.name"
+                    class="h-full w-full object-cover"
+                    loading="eager"
+                  />
+                  <span
+                    class="absolute left-4 top-4 rounded-md bg-red-600 px-3 py-1.5 text-xs font-black uppercase tracking-wide text-white"
+                  >
+                    {{ product.tag }}
+                  </span>
+                </div>
+                <div v-if="product.gallery.length > 1" class="mt-3 grid grid-cols-3 gap-3">
+                  <button
+                    v-for="(image, index) in product.gallery"
+                    :key="image"
+                    type="button"
+                    :class="[
+                      'h-20 overflow-hidden rounded-md border transition',
+                      selectedImageIndex === index
+                        ? 'border-red-500 ring-2 ring-red-100'
+                        : 'border-zinc-200 hover:border-red-300',
+                    ]"
+                    @click="selectedImageIndex = index"
+                  >
+                    <img
+                      :src="image"
+                      :alt="`${product.name} image ${index + 1}`"
+                      class="h-full w-full object-cover"
+                      loading="lazy"
+                    />
+                  </button>
+                </div>
+              </div>
+
+              <div class="flex flex-col">
+                <div class="flex flex-wrap items-center gap-2">
+                  <span
+                    class="rounded-md bg-zinc-950 px-3 py-1.5 text-xs font-black uppercase tracking-wide text-white"
+                    >{{ product.categoryGroup }}</span
+                  >
+                  <span
+                    class="rounded-md bg-red-50 px-3 py-1.5 text-xs font-black uppercase tracking-wide text-red-700"
+                    >{{ product.brand }}</span
+                  >
+                </div>
+
+                <p class="mt-5 text-xs font-black uppercase tracking-[0.22em] text-zinc-500">
+                  {{ product.code }}
+                </p>
+                <h1 class="mt-2 text-3xl font-black tracking-tight sm:text-4xl">
+                  {{ product.name }}
+                </h1>
+                <p class="mt-4 text-base leading-7 text-zinc-600">{{ product.summary }}</p>
+
+                <div class="mt-5 flex flex-wrap items-center gap-3">
+                  <span
+                    class="inline-flex items-center gap-1 rounded-md bg-zinc-100 px-3 py-2 text-sm font-black"
+                  >
+                    <Star class="h-4 w-4 fill-red-600 text-red-600" aria-hidden="true" />
+                    {{ product.rating }} / 5
+                  </span>
+                  <span
+                    class="inline-flex items-center gap-2 rounded-md bg-green-50 px-3 py-2 text-sm font-black text-green-800"
+                  >
+                    <PackageCheck class="h-4 w-4" aria-hidden="true" />
+                    {{ product.stockQty }} in stock
+                  </span>
+                </div>
+
+                <div class="mt-6 rounded-md border border-zinc-200 bg-zinc-50 p-4">
+                  <p class="text-xs font-black uppercase tracking-wide text-zinc-500">Fits</p>
+                  <p class="mt-1 text-lg font-black">{{ product.fitment }}</p>
+                </div>
+
+                <div class="mt-6 grid gap-3 sm:grid-cols-2">
+                  <div
+                    v-for="bullet in product.bullets"
+                    :key="bullet"
+                    class="flex gap-2 text-sm font-semibold leading-6 text-zinc-700"
+                  >
+                    <CheckCircle2 class="mt-0.5 h-4 w-4 shrink-0 text-red-600" aria-hidden="true" />
+                    <span>{{ bullet }}</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
+
+          <aside
+            class="rounded-lg border border-zinc-200 bg-white p-5 shadow-sm lg:sticky lg:top-60"
+          >
+            <p class="text-xs font-black uppercase tracking-[0.22em] text-red-600">
+              Selected product
+            </p>
+            <div class="mt-3 flex items-end gap-3">
+              <p class="text-4xl font-black">£{{ product.price.toFixed(2) }}</p>
+              <p v-if="product.wasPrice" class="pb-1 text-sm font-bold text-zinc-400 line-through">
+                £{{ product.wasPrice.toFixed(2) }}
+              </p>
+            </div>
+            <p v-if="savings" class="mt-2 text-sm font-black text-red-600">
+              You save £{{ savings }}
+            </p>
+
+            <label
+              class="mt-5 block text-sm font-black uppercase tracking-wide text-zinc-600"
+              for="quantity"
+              >Quantity</label
+            >
+            <input
+              id="quantity"
+              v-model.number="quantity"
+              type="number"
+              min="1"
+              :max="product.stockQty"
+              class="mt-2 h-12 w-full rounded-md border border-zinc-300 px-4 text-lg font-black outline-none focus:border-red-500 focus:ring-2 focus:ring-red-100"
+            />
+
+            <button
+              type="button"
+              class="mt-5 inline-flex h-12 w-full items-center justify-center gap-2 rounded-md bg-red-600 px-5 text-sm font-black uppercase tracking-wide text-white transition hover:bg-red-500"
+              @click="addToBasket"
+            >
+              <ShoppingCart class="h-4 w-4" aria-hidden="true" />
+              Add to basket
+            </button>
+
+            <div class="mt-5 space-y-3 border-t border-zinc-200 pt-5">
+              <p class="flex items-center gap-2 text-sm font-bold text-zinc-700">
+                <Truck class="h-4 w-4 text-red-600" aria-hidden="true" />
+                Fast UK dispatch on stocked items
+              </p>
+              <p class="flex items-center gap-2 text-sm font-bold text-zinc-700">
+                <ShieldCheck class="h-4 w-4 text-red-600" aria-hidden="true" />
+                Fitment support before fitting
+              </p>
+            </div>
+          </aside>
         </div>
 
-        <!-- No related fallback -->
-        <div
-          v-if="!isRelatedLoading && !relatedError && relatedProducts.length === 0"
-          class="text-center py-10 text-gray-500"
-        >
-          No related products found.
+        <div class="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_26rem]">
+          <section class="rounded-lg border border-zinc-200 bg-white p-5 shadow-sm">
+            <h2 class="text-2xl font-black">Specifications</h2>
+            <dl class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <div
+                v-for="spec in product.specs"
+                :key="spec.label"
+                class="rounded-md bg-zinc-50 p-4"
+              >
+                <dt class="text-xs font-black uppercase tracking-wide text-zinc-500">
+                  {{ spec.label }}
+                </dt>
+                <dd class="mt-1 text-base font-black text-zinc-950">{{ spec.value }}</dd>
+              </div>
+            </dl>
+          </section>
+
+          <section class="rounded-lg border border-zinc-200 bg-white p-5 shadow-sm">
+            <h2 class="text-2xl font-black">Need help?</h2>
+            <p class="mt-3 text-sm leading-6 text-zinc-600">
+              Send your registration and MPH can confirm compatibility before you fit this part.
+            </p>
+          </section>
         </div>
+
+        <section class="mt-8 rounded-lg border border-zinc-200 bg-white p-5 shadow-sm">
+          <div class="mb-5 flex items-center justify-between gap-4">
+            <h2 class="text-2xl font-black">Related products</h2>
+            <RouterLink
+              to="/catalogue"
+              class="text-sm font-black uppercase tracking-wide text-red-600 hover:text-zinc-950"
+              >View catalogue</RouterLink
+            >
+          </div>
+          <div class="grid gap-5 md:grid-cols-3">
+            <RouterLink
+              v-for="related in relatedProducts"
+              :key="related.id"
+              :to="`/products/${related.id}`"
+              class="group overflow-hidden rounded-lg border border-zinc-200 bg-white transition hover:border-red-200 hover:shadow-lg"
+            >
+              <div class="h-40 overflow-hidden bg-zinc-200">
+                <img
+                  :src="related.image"
+                  :alt="related.name"
+                  class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                  loading="lazy"
+                />
+              </div>
+              <div class="p-4">
+                <p class="text-xs font-black uppercase tracking-wide text-red-600">
+                  {{ related.brand }}
+                </p>
+                <h3 class="mt-1 min-h-12 text-base font-black leading-tight">{{ related.name }}</h3>
+                <p class="mt-3 text-xl font-black">£{{ related.price.toFixed(2) }}</p>
+              </div>
+            </RouterLink>
+          </div>
+        </section>
       </div>
-    </div>
+    </section>
 
-    <!-- In case API returns null or empty object -->
-    <div v-else class="text-center py-20">
-      <p class="text-gray-500">No product data available.</p>
-    </div>
+    <section v-else class="px-4 py-20 sm:px-6 lg:px-8">
+      <div
+        class="mx-auto max-w-2xl rounded-lg border border-zinc-200 bg-white p-10 text-center shadow-sm"
+      >
+        <nav
+          class="mb-6 flex items-center justify-center gap-2 text-sm font-bold text-zinc-500"
+          aria-label="Breadcrumb"
+        >
+          <RouterLink to="/" class="transition hover:text-red-600">Home</RouterLink>
+          <ChevronRight class="h-4 w-4" aria-hidden="true" />
+          <RouterLink to="/catalogue" class="transition hover:text-red-600"
+            >Parts Catalogue</RouterLink
+          >
+          <ChevronRight class="h-4 w-4" aria-hidden="true" />
+          <span class="text-zinc-950">Product not found</span>
+        </nav>
+        <Box class="mx-auto h-12 w-12 text-red-600" aria-hidden="true" />
+        <h1 class="mt-5 text-3xl font-black">Product not found</h1>
+        <p class="mt-3 text-zinc-600">
+          The part may have moved or the catalogue link is no longer available.
+        </p>
+        <RouterLink
+          to="/catalogue"
+          class="mt-6 inline-flex h-12 items-center justify-center rounded-md bg-red-600 px-6 text-sm font-black uppercase tracking-wide text-white hover:bg-red-500"
+        >
+          Return to catalogue
+        </RouterLink>
+      </div>
+    </section>
   </div>
 </template>
-
-<style scoped>
-/* (Optional) Page‐specific overrides */
-</style>

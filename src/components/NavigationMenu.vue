@@ -3,14 +3,26 @@
 import { RouterLink } from 'vue-router'
 
 const carOptions = [
-  { label: 'BMW', to: '/collections/bmw' },
-  { label: 'HONDA', to: '/collections/honda' },
-  { label: 'RENAULT', to: '/collections/renault' },
-  { label: 'PEUGEOT', to: '/collections/peugeot' },
-  { label: 'AUDI', to: '/collections/audi' },
-  { label: 'CITROEN', to: '/collections/citreon' },
-  { label: 'FORD', to: '/collections/ford' },
-  { label: 'VOLKSWAGEN', to: '/collections/volkswagon-1' },
+  { label: 'BMW', to: { path: '/catalogue', query: { q: 'BMW' } } },
+  { label: 'HONDA', to: { path: '/catalogue', query: { q: 'Honda' } } },
+  { label: 'RENAULT', to: { path: '/catalogue', query: { q: 'Renault' } } },
+  { label: 'PEUGEOT', to: { path: '/catalogue', query: { q: 'Peugeot' } } },
+  { label: 'AUDI', to: { path: '/catalogue', query: { q: 'Audi' } } },
+  { label: 'CITROEN', to: { path: '/catalogue', query: { q: 'Citroen' } } },
+  { label: 'FORD', to: { path: '/catalogue', query: { q: 'Ford' } } },
+  { label: 'VOLKSWAGEN', to: { path: '/catalogue', query: { q: 'Volkswagen' } } },
+]
+
+const categoryLinks = [
+  { label: 'WIPER BLADES', to: { path: '/catalogue', query: { q: 'wiper blades' } } },
+  { label: 'BULBS', to: { path: '/catalogue', query: { category: 'lighting' } } },
+  { label: 'OILS & ANTIFREEZE', to: { path: '/catalogue', query: { category: 'fluids' } } },
+  {
+    label: 'ACCESSORIES & CAR CARE',
+    to: { path: '/catalogue', query: { q: 'accessories car care' } },
+  },
+  { label: 'PERFORMANCE', to: { path: '/catalogue', query: { category: 'performance' } } },
+  { label: 'TOOLS', to: { path: '/catalogue', query: { q: 'tools' } } },
 ]
 </script>
 
@@ -57,37 +69,11 @@ const carOptions = [
         </details>
       </li>
 
-      <!-- Other links -->
-      <li>
-        <RouterLink to="/collections/wiper-blades" class="hover:text-gray-900"
-          >WIPER BLADES</RouterLink
-        >
+      <li v-for="item in categoryLinks" :key="item.label">
+        <RouterLink :to="item.to" class="hover:text-gray-900">{{ item.label }}</RouterLink>
       </li>
       <li>
-        <RouterLink to="/collections/bulbs" class="hover:text-gray-900">BULBS</RouterLink>
-      </li>
-      <li>
-        <RouterLink to="/collections/oils-antifreeze" class="hover:text-gray-900"
-          >OILS &amp; ANTIFREEZE</RouterLink
-        >
-      </li>
-      <li>
-        <RouterLink to="/collections/accessories-car-care" class="hover:text-gray-900"
-          >ACCESSORIES &amp; CAR CARE</RouterLink
-        >
-      </li>
-      <li>
-        <RouterLink to="/collections/performance" class="hover:text-gray-900"
-          >PERFORMANCE</RouterLink
-        >
-      </li>
-      <li>
-        <RouterLink to="/collections/tools" class="hover:text-gray-900">TOOLS</RouterLink>
-      </li>
-      <li>
-        <RouterLink to="/policies/contact-information" class="hover:text-gray-900"
-          >CONTACT</RouterLink
-        >
+        <RouterLink to="/catalogue" class="hover:text-gray-900">ALL PARTS</RouterLink>
       </li>
     </ul>
   </nav>
